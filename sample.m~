@@ -1,0 +1,26 @@
+%Sample code
+close all;
+clear all;
+
+
+img=imread('images/sample.png');
+
+ima = img;
+[x,y] = size(ima);
+colormap(gray(256));
+figure();
+image(ima);
+figure(2);
+ima = binarize(ima);
+ima = inverse_bin(ima);
+ima = dil(buildStructuralElementForDim(7),ima);
+lines = findLineBounds(ima,0.001,50);
+disp(lines);
+ima = back_inverse_bin(ima);
+colormap(gray(256));
+image(ima);
+
+% se = makeSE('disk',4);
+% cell = uint8(ima2mat('cell256'));
+% image(cell);
+% dil = dilation(cell,se);
