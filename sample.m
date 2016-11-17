@@ -3,25 +3,38 @@ close all;
 clear all;
 
 
-img=imread('images/sample.png');
+img=imread('images/page1_BW.jpg');
 
 ima = img;
-[x,y] = size(ima);
 colormap(gray(256));
 figure();
 image(ima);
 figure(2);
 ima = binarize(ima);
+[x,y] = size(ima);
+disp(y);
+disp(x);
 ima = inverse_bin(ima);
+ima = ero(buildStructuralElementForDim(1),ima);
 ima = dil(buildStructuralElementForDim(7),ima);
-lines = findLineBounds(ima,0.001,50);
-ima = drawBorders(ima,lines);
-disp(lines);
+ima = ero(buildStructuralElementForDim(8),ima);
+lines = findLineBounds(ima,0.001,10);
+lines = cutZeros(lines);
+lines = extendBorders(lines,5);
 ima = back_inverse_bin(ima);
-colormap(gray(256));
 image(ima);
+images = getByLines(img,lines);
+colormap(gray(256));
+disp(size(images));
+[x,y] = size(images);
 
-% se = makeSE('disk',4);
-% cell = uint8(ima2mat('cell256'));
-% image(cell);
-% dil = dilation(cell,se);
+for i = 1 : y
+    try
+    s = sprintf('images/line %i.png', i);
+    imwrite(images{i},s);
+    catch
+    end;
+end
+
+l = im2bw(imread('images/line 1.png'),0.9);
+disp(wordcountinlines(l));

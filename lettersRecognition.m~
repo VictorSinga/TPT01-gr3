@@ -1,0 +1,16 @@
+%Sample code
+close all;
+clear all;
+
+
+img=imread('images/line 1.png');
+
+ima = img;
+colormap(gray(256));
+ima = binarize(ima);
+ima = inverse_bin(ima);
+fas1 = closing
+ima = dil(buildStructuralElementForDim(2),ima);
+ima = back_inverse_bin(ima);
+image(ima);
+

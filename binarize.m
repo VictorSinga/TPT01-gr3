@@ -1,7 +1,7 @@
 %make dummy binarization if not white then black
 function [img] = binarize(img_in)
     img = img_in;
-    [x,y] = size(img);
+    [x,y,z] = size(img);
     for i = 1:x
         for j = 1:y
             %disp(img(x,y));
@@ -10,5 +10,6 @@ function [img] = binarize(img_in)
             end;
         end;
     end;
+    img = img(:,:,1);
 end
 
