@@ -10,12 +10,14 @@ function page = page_perspective_correction(img, debug)
     % convert to grayscale
     %img = double(rgb2gray(img));
     % subsample for better performance
-    subsample_rate = 4;
+    subsample_rate = 1;
     img_subsampled = img(1:subsample_rate:end, 1:subsample_rate:end);
     
     %%
     fun = @(x) max(x(:));
+    orig = img_subsampled;
     img_subsampled = nlfilter(img_subsampled, [5, 5], fun);
+    figure; plotim(orig - img_subsampled);
     
     %% find dominant edges
     edges = edge(img_subsampled, 'Sobel');
@@ -162,44 +164,9 @@ function page = page_perspective_correction(img, debug)
     coords = [Xq(:)'; Yq(:)'];
     projected_points = round(p2e(H*e2p(coords)));
     
-    for i = 1:size(coords, 2)
-        page(coords(1,i), coords(2,i)) = img(projected_points(2,i), projected_points(1,i));
-    end
-    
     [X, Y] = meshgrid(1:size(img,2), 1:size(img,1));
     page = interp2(X, Y, img, reshape(projected_points(1,:), [max_height, max_width]), reshape(projected_points(2,:), [max_height, max_width]));
     
-      %% find homography
-%     H = get_homography(corners, rect_corners);
-%     
-%     % get the coordinates and apply homography
-%     [X, Y] = meshgrid(1:size(img,2), 1:size(img,1));
-%     coords = [X(:)'; Y(:)'];
-%     projected_points = round(p2e(H*e2p(coords)));
-%     page = zeros(max_height, max_width);
-%     
-%     % filter those original points that have been projected to the same point
-%     indices = unique([find(projected_points(1,:) <= 0), find(projected_points(1,:) > max_width) ,...
-%         find(projected_points(2,:) <= 0), find(projected_points(2,:) > max_height)]);
-%     
-%     projected_points(:, indices) = [];
-%     coords(:, indices) = [];
-%     
-%     [C, ia, ic] = unique(projected_points', 'rows');
-%     projected_points = C';
-%     coords = coords(:, ia);
-%     
-%     % transform image
-%     for i = 1:size(projected_points, 2)
-%         page(projected_points(2, i), projected_points(1, i)) = img(coords(2, i), coords(1, i));
-%     end
-%     
-%     % interpolate result to fix black gaps
-%     vals = zeros(1, size(projected_points, 2));
-%     for i = 1:size(projected_points, 2)
-%         vals(i) = page(projected_points(2,i), projected_points(1,i));
-%     end
-%     [Xq, Yq] = meshgrid(1:max_width, 1:max_height);
-%     
-%     page = griddata(projected_points(2,:), projected_points(1,:), vals, Yq, Xq);
+    %% crop page
+    page = page(round(max_height * 0.02):round(max_height * 0.98), round(max_width * 0.02):round(max_width * 0.98));
 end
