@@ -1,0 +1,11 @@
+img = imread(sprintf('page%d.jpg', i));
+img = double(rgb2gray(img));
+
+neighbourhood = 2*floor(size(img)/16)+1;
+sensitivity = 0.7;
+iimg = integral_image(img);
+
+fun = @(x) ((x(end,end)-x(1,1))/numel(x));
+T = nlfilter(iimg, neighbourhood, fun);
+
+binary_img = reshape(img(:) > T(:)*sensitivity, [size(]);
