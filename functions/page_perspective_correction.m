@@ -1,5 +1,5 @@
 % corrects the perspective deformation of a page
-% input: image of a page
+% input: grayscale image of a page
 % output: grayscale image of a page with corrected perspective
 function page = page_perspective_correction(img, debug)
     %% preprocessing
@@ -7,17 +7,33 @@ function page = page_perspective_correction(img, debug)
         debug = 0;
     end
 
-    % convert to grayscale
-    %img = double(rgb2gray(img));
     % subsample for better performance
-    subsample_rate = 1;
+    subsample_rate = 4;
     img_subsampled = img(1:subsample_rate:end, 1:subsample_rate:end);
     
-    %%
+    %% non-linear filtering - local maximum
     fun = @(x) max(x(:));
-    orig = img_subsampled;
     img_subsampled = nlfilter(img_subsampled, [5, 5], fun);
-    figure; plotim(orig - img_subsampled);
+    
+    %% crop the image to remove uninteresting background
+    mask = zeros(size(img_subsampled));
+    mask(round(size(img_subsampled,1) * 0.1):round(size(img_subsampled,1) * 0.9), ...
+        round(size(img_subsampled,2) * 0.1):round(size(img_subsampled,2) * 0.9)) = 1;
+    C = activecontour(img_subsampled, mask);
+    
+    [row, col] = find(C);
+    offsetRow = round(size(img_subsampled,1) * 0.05);
+    offsetCol = round(size(img_subsampled,2) * 0.05);
+    
+    img_subsampled(1:(min(row)+offsetRow),:) = [];
+    img_subsampled((max(row)-offsetRow):end,:) = [];
+    img_subsampled(:, 1:(min(col)+offsetCol)) = [];
+    img_subsampled(:, (max(col)-offsetCol):end) = [];
+    
+    img(1:((min(row)+offsetRow)*subsample_rate),:) = [];
+    img(((max(row)-offsetRow)*subsample_rate):end,:) = [];
+    img(:, 1:((min(col)+offsetCol)*subsample_rate)) = [];
+    img(:, ((max(col)-offsetCol)*subsample_rate):end) = [];
     
     %% find dominant edges
     edges = edge(img_subsampled, 'Sobel');
